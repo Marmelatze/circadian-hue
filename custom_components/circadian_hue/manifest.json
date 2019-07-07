@@ -1,0 +1,8 @@
+{
+  "domain": "hue_circadian",
+  "name": "Circadian Hue Lighting",
+  "documentation": "https://github.com/Marmelatze/circadian-hue",
+  "dependencies": ["hue", "circadian_lighting"],
+  "codeowners": ["@Marmelatze"],
+  "requirements": []
+}
