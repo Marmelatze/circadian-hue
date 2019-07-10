@@ -116,7 +116,7 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
         if percent > 0:
             brightness = 255
         else:
-            brightness = 255 * (percent / 100)
+            brightness = 255 * (abs(percent) / 100)
         out = dict()
         for light in lights:
             data = {
