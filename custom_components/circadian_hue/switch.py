@@ -7,7 +7,7 @@ import voluptuous as vol
 import async_timeout
 
 from homeassistant.components.switch import SwitchDevice
-from homeassistant.const import CONF_PLATFORM, CONF_NAME
+from homeassistant.const import CONF_PLATFORM, CONF_NAME, STATE_ON
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import slugify
@@ -129,6 +129,16 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
             }
             out[light] = data
         return out
+
+    async def async_added_to_hass(self):
+        """Call when entity about to be added to hass."""
+        # If not None, we got an initial value.
+        await super().async_added_to_hass()
+        if self._state is not None:
+            return
+
+        state = await self.async_get_last_state()
+        self._state = state and state.state == STATE_ON
 
     async def update_bridge(self, bridge):
         if self._state is not True:
