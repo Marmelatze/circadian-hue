@@ -116,18 +116,19 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
         if percent > 0:
             brightness = 255
         else:
-            brightness = 255 * (abs(percent) / 100)
+            brightness = 255 * ((100 + percent) / 100)
+        _LOGGER.info("set brightness to {}".format(brightness))
         out = dict()
         for light in lights:
             data = {
                 key: value for key, value in {
                     'on': True,
-                    'xy': xy_color,
-                    'bri': brightness if set_brightness else None,
+                    'xy': xy_color if 'xy' in light.state else None,
+                    'bri': int(brightness) if set_brightness else None,
                     'transitiontime': 20
                 }.items() if value is not None
             }
-            out[light] = data
+            out[light.id] = data
         return out
 
     async def async_added_to_hass(self):
@@ -164,10 +165,10 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
                     is_current_scene = False
                 if abs(current_state['bri'] - state['bri']) > 5:
                     brightness_changed = True
-                if abs(current_state['xy'][0] - state['xy'][0]) > 0.02 or abs(current_state['xy'][1] - state['xy'][0]) > 0.02:
+                if 'xy' in current_state and (abs(current_state['xy'][0] - state['xy'][0]) > 0.1 or abs(current_state['xy'][1] - state['xy'][0]) > 0.1):
                     is_current_scene = False
-
-            state = self.get_lightstate(scene.lights)
+            lights = list(map(lambda id: bridge.api.lights[id], scene.lights))
+            state = self.get_lightstate(lights)
 
             data = {
                 key: value for key, value in {
@@ -181,7 +182,7 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
                 _LOGGER.info("Circadian scene is currently active.")
                 if brightness_changed:
                     _LOGGER.info("Brightness was changed manually")
-                state = self.get_lightstate(scene.lights, not brightness_changed)
+                state = self.get_lightstate(lights, not brightness_changed)
                 await asyncio.gather(*[bridge.api.lights[light].set_state(**light_state) for light, light_state in state.items()])
 
 
