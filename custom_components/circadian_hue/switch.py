@@ -167,7 +167,7 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
                     brightness_changed = True
                 if 'xy' in current_state:
                     _LOGGER.info("values %s %s", abs(current_state['xy'][0] - state['xy'][0]), abs(current_state['xy'][1] - state['xy'][0]))
-                if 'xy' in current_state and (abs(current_state['xy'][0] - state['xy'][0]) > 0.02 or abs(current_state['xy'][1] - state['xy'][0]) > 0.02):
+                if 'xy' in current_state and (abs(current_state['xy'][0] - state['xy'][0]) > 0.1 or abs(current_state['xy'][1] - state['xy'][0]) > 0.1):
                     is_current_scene = False
             lights = list(map(lambda id: bridge.api.lights[id], scene.lights))
             state = self.get_lightstate(lights)
