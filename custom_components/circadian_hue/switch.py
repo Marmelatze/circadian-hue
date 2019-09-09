@@ -16,7 +16,7 @@ import homeassistant.helpers.config_validation as cv
 DEPENDENCIES = ["hue", "circadian_lighting"]
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = timedelta(seconds=15)
+SCAN_INTERVAL = timedelta(seconds=120)
 
 PLATFORM_SCHEMA = vol.Schema({
     vol.Required(CONF_PLATFORM): 'circadian_hue',
@@ -166,8 +166,8 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
                 if abs(current_state['bri'] - state['bri']) > 5:
                     brightness_changed = True
                 if 'xy' in current_state:
-                    _LOGGER.info("values %s %s", abs(current_state['xy'][0] - state['xy'][0]), abs(current_state['xy'][1] - state['xy'][0]))
-                if 'xy' in current_state and (abs(current_state['xy'][0] - state['xy'][0]) > 0.1 or abs(current_state['xy'][1] - state['xy'][0]) > 0.1):
+                    _LOGGER.info("values %s %s", abs(current_state['xy'][0] - state['xy'][0]), abs(current_state['xy'][1] - state['xy'][1]))
+                if 'xy' in current_state and (abs(current_state['xy'][0] - state['xy'][0]) > 0.01 or abs(current_state['xy'][1] - state['xy'][1]) > 0.01):
                     is_current_scene = False
             lights = list(map(lambda id: bridge.api.lights[id], scene.lights))
             state = self.get_lightstate(lights)
