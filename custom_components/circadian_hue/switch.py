@@ -3,20 +3,20 @@ import logging
 import threading
 from datetime import timedelta
 
-import voluptuous as vol
 import async_timeout
+import voluptuous as vol
 
+import homeassistant.helpers.config_validation as cv
 from homeassistant.components.switch import SwitchDevice
 from homeassistant.const import CONF_PLATFORM, CONF_NAME, STATE_ON
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.util import slugify
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import slugify, color
 
 DEPENDENCIES = ["hue", "circadian_lighting"]
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = timedelta(seconds=120)
+SCAN_INTERVAL = timedelta(seconds=15)
 
 PLATFORM_SCHEMA = vol.Schema({
     vol.Required(CONF_PLATFORM): 'circadian_hue',
@@ -111,6 +111,7 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
             self.lock.release()
 
     def get_lightstate(self, lights, set_brightness=True):
+        colortemp = self.hass.states.get('sensor.circadian_values').attributes['colortemp']
         xy_color = self.hass.states.get('sensor.circadian_values').attributes['xy_color']
         percent = float(self.hass.states.get('sensor.circadian_values').state)
         if percent > 0:
@@ -123,7 +124,8 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
             data = {
                 key: value for key, value in {
                     'on': True,
-                    'xy': xy_color if 'xy' in light.state else None,
+                    #'xy': xy_color if 'xy' in light.state else None,
+                    'ct': max(153, min(color.color_temperature_kelvin_to_mired(colortemp), 500)) if 'ct' in light.state else None,
                     'bri': int(brightness) if set_brightness else None,
                     'transitiontime': 20
                 }.items() if value is not None
@@ -163,11 +165,15 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
                 current_state = bridge.api.lights[light_id].state
                 if current_state['on'] != state['on']:
                     is_current_scene = False
+                if 'colormode' in current_state and current_state['colormode'] != 'ct':
+                    is_current_scene = False
                 if abs(current_state['bri'] - state['bri']) > 5:
                     brightness_changed = True
-                if 'xy' in current_state:
-                    _LOGGER.info("values %s %s", abs(current_state['xy'][0] - state['xy'][0]), abs(current_state['xy'][1] - state['xy'][1]))
-                if 'xy' in current_state and (abs(current_state['xy'][0] - state['xy'][0]) > 0.01 or abs(current_state['xy'][1] - state['xy'][1]) > 0.01):
+                #if 'xy' in current_state:
+                #     _LOGGER.info("values %s %s", abs(current_state['xy'][0] - state['xy'][0]), abs(current_state['xy'][1] - state['xy'][1]))
+                #if 'xy' in current_state and (abs(current_state['xy'][0] - state['xy'][0]) > 0.01 or abs(current_state['xy'][1] - state['xy'][1]) > 0.01):
+                #    is_current_scene = False
+                if 'ct' in current_state and 'ct' in state and abs(current_state['ct'] - state['ct']) > 1:
                     is_current_scene = False
             lights = list(map(lambda id: bridge.api.lights[id], scene.lights))
             state = self.get_lightstate(lights)
