@@ -167,7 +167,7 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
                     is_current_scene = False
                 if 'colormode' in current_state and current_state['colormode'] != 'ct':
                     is_current_scene = False
-                if abs(current_state['bri'] - state['bri']) > 5:
+                if 'bri' in current_state and abs(current_state['bri'] - state['bri']) > 5:
                     brightness_changed = True
                 #if 'xy' in current_state:
                 #     _LOGGER.info("values %s %s", abs(current_state['xy'][0] - state['xy'][0]), abs(current_state['xy'][1] - state['xy'][1]))
