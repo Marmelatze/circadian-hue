@@ -126,7 +126,7 @@ class CircadianHueSwitch(SwitchDevice, RestoreEntity):
                     'on': True,
                     #'xy': xy_color if 'xy' in light.state else None,
                     'ct': max(153, min(color.color_temperature_kelvin_to_mired(colortemp), 500)) if 'ct' in light.state else None,
-                    'bri': int(brightness) if set_brightness else None,
+                    'bri': int(brightness) if set_brightness and 'bri' in light.state else None,
                     'transitiontime': 20
                 }.items() if value is not None
             }
