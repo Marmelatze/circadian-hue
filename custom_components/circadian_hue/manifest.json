@@ -4,5 +4,6 @@
   "documentation": "https://github.com/Marmelatze/circadian-hue",
   "dependencies": ["hue", "circadian_lighting"],
   "codeowners": ["@Marmelatze"],
+  "version": "1.0.0",
   "requirements": []
 }
